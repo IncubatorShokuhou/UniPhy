@@ -1,6 +1,6 @@
 model:
-  in_channels: 30
-  out_channels: 30
+  in_channels: 84
+  out_channels: 84
   embed_dim: 256
   expand: 4
   depth: 8
@@ -11,6 +11,7 @@ model:
   sde_mode: "sde"
   init_noise_scale: 0.0001
   ensemble_size: 4
+  pressure_levels: [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
 
 data:
   input_dir: "/nfs/ERA5_data/data_norm"

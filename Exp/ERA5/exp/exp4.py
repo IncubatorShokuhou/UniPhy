@@ -28,8 +28,8 @@ def load_config_and_model(ckpt_path, device):
         model_cfg = checkpoint["cfg"]["model"]
     else:
         model_cfg = {
-            "in_channels": 30,
-            "out_channels": 30,
+            "in_channels": 84,
+            "out_channels": 84,
             "embed_dim": 512,
             "expand": 4,
             "depth": 8,
@@ -93,8 +93,11 @@ def get_test_data(device):
         return x_ctx, x_target
     except Exception as e:
         print(f"⚠️ 数据加载失败（{e}）。将使用随机张量。")
-        x_ctx = torch.randn(1, 1, 30, 721, 1440, device=device)
-        x_target = torch.randn(1, 30, 721, 1440, device=device)
+        c = 84
+        h = 721
+        w = 1440
+        x_ctx = torch.randn(1, 1, c, h, w, device=device)
+        x_target = torch.randn(1, c, h, w, device=device)
         return x_ctx, x_target
 
 

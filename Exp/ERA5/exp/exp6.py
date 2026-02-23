@@ -35,7 +35,10 @@ DATA_SAMPLING_MODE = "sequential"
 
 SURFACE_VARS = ["TCWV", "U10", "V10", "T2", "MSLP", "SP"]
 VAR = ["VV", "U", "V", "RH", "T", "Z"]
-HEIGHTS = ["925", "850", "500", "100"]
+HEIGHTS = [
+    "50", "100", "150", "200", "250", "300", "400",
+    "500", "600", "700", "850", "925", "1000",
+]
 PRESSURE_VARS = [v + h for v in VAR for h in HEIGHTS]
 CHANNEL_NAMES = SURFACE_VARS + PRESSURE_VARS
 
@@ -149,9 +152,14 @@ def main():
     pred_mean = rollout_ensemble_mean(model, x_ctx, dt_ref, ensemble_size)
     pred = pred_mean[0].detach().cpu().numpy()
 
-    n_channels = min(pred.shape[1], len(CHANNEL_NAMES))
+    n_channels = int(pred.shape[1])
+    if n_channels != len(CHANNEL_NAMES):
+        channel_names = [f"ch_{i}" for i in range(n_channels)]
+    else:
+        channel_names = CHANNEL_NAMES
+
     for c in range(n_channels):
-        name = CHANNEL_NAMES[c]
+        name = channel_names[c]
         print("生成 GIF:", name)
         save_channel_gif(pred[:, c], name)
 

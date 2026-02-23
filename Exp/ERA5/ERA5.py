@@ -19,6 +19,9 @@ class ERA5Dataset(Dataset):
         is_train=True,
         dt_ref=6.0,
         sampling_mode="mixed",
+        expected_channels=None,
+        min_img_height=181,
+        min_img_width=360,
     ):
         self.input_root = input_dir
         self.window_size = window_size
@@ -27,6 +30,9 @@ class ERA5Dataset(Dataset):
         self.is_train = is_train
         self.dt_ref = dt_ref
         self.sampling_mode = sampling_mode
+        self.expected_channels = expected_channels
+        self.min_img_height = int(min_img_height)
+        self.min_img_width = int(min_img_width)
 
         self.all_info = []
         for year in range(year_range[0], year_range[1] + 1):
@@ -43,6 +49,23 @@ class ERA5Dataset(Dataset):
         self.file_shapes = []
         for path in self.all_info:
             shape = np.load(path, mmap_mode="r").shape
+            if len(shape) != 4:
+                raise ValueError(
+                    f"ERA5 样本形状应为 [T, C, H, W]，但文件 {path} 为 {shape}"
+                )
+            if shape[2] < self.min_img_height or shape[3] < self.min_img_width:
+                raise ValueError(
+                    f"网格过小（H={shape[2]}, W={shape[3]}），"
+                    f"要求至少 H>={self.min_img_height}, W>={self.min_img_width}"
+                )
+            if (
+                self.expected_channels is not None
+                and int(shape[1]) != int(self.expected_channels)
+            ):
+                raise ValueError(
+                    f"通道数不匹配：文件 {path} 为 C={shape[1]}，"
+                    f"配置期望 C={self.expected_channels}"
+                )
             self.file_shapes.append(shape)
             self.file_frame_offsets.append(
                 self.file_frame_offsets[-1] + shape[0]

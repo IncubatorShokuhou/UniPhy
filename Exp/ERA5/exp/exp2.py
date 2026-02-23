@@ -21,8 +21,8 @@ def load_config_and_model(ckpt_path, device):
         model_cfg = checkpoint["cfg"]["model"]
     else:
         model_cfg = {
-            "in_channels": 30,
-            "out_channels": 30,
+            "in_channels": 84,
+            "out_channels": 84,
             "embed_dim": 512,
             "expand": 4,
             "depth": 8,

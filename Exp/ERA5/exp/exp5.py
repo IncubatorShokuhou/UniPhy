@@ -40,8 +40,8 @@ def load_config_and_model(ckpt_path, device):
         model_cfg = checkpoint["cfg"]["model"]
     else:
         model_cfg = {
-            "in_channels": 30,
-            "out_channels": 30,
+            "in_channels": 84,
+            "out_channels": 84,
             "embed_dim": 512,
             "expand": 4,
             "depth": 8,
@@ -101,7 +101,7 @@ def get_vis_data(device):
         return data.to(device)
     except Exception as e:
         print(f"数据加载失败（{e}）。将使用随机张量。")
-        return torch.randn(1, 3, 30, 721, 1440, device=device)
+        return torch.randn(1, 3, 84, 721, 1440, device=device)
 
 
 @torch.no_grad()
@@ -138,7 +138,7 @@ def compute_mae(pred, gt):
     return float(np.mean(np.abs(pred - gt)))
 
 
-def find_best_channel(real_data, pre_seq, fine_seq, num_channels=30):
+def find_best_channel(real_data, pre_seq, fine_seq, num_channels=None):
     step_indices = [5, 11]
     gt_indices = [1, 2]
 
@@ -150,6 +150,9 @@ def find_best_channel(real_data, pre_seq, fine_seq, num_channels=30):
     print("-" * 70)
     print(f"{'通道':>4} | {'预训练RMSE':>10} | {'微调RMSE':>10} | {'提升%':>10} | {'状态'}")
     print("-" * 70)
+
+    if num_channels is None:
+        num_channels = int(real_data.shape[2])
 
     for ch in range(num_channels):
         pre_rmse_total = 0.0
@@ -333,7 +336,10 @@ def main():
     del model_align
     torch.cuda.empty_cache()
 
-    best_ch, _ = find_best_channel(data, seq_pre, seq_align, num_channels=30)
+    num_channels = int(data.shape[2])
+    best_ch, _ = find_best_channel(
+        data, seq_pre, seq_align, num_channels=num_channels
+    )
 
     save_name = f"forecast_comparison_dt1h_ensemblemean_ch{best_ch}.pdf"
     print(f"\n正在绘制最佳通道： {best_ch}...")

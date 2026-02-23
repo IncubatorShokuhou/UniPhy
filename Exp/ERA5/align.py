@@ -66,6 +66,42 @@ def set_seed(seed):
     torch.cuda.manual_seed_all(seed)
 
 
+def validate_model_grid_cfg(cfg):
+    model_cfg = cfg["model"]
+    in_ch = int(model_cfg["in_channels"])
+    out_ch = int(model_cfg["out_channels"])
+    embed_dim = int(model_cfg["embed_dim"])
+    depth = int(model_cfg["depth"])
+    H = int(model_cfg["img_height"])
+    W = int(model_cfg["img_width"])
+    ph, pw = map(int, model_cfg["patch_size"])
+
+    if in_ch != out_ch:
+        raise ValueError(
+            f"in_channels({in_ch}) 与 out_channels({out_ch}) 必须一致"
+        )
+    if in_ch < 70:
+        raise ValueError(
+            f"当前通道数为 {in_ch}，建议 >=70（13 层高空配置通常至少 70-84 通道）"
+        )
+    if H < 181 or W < 360:
+        raise ValueError(
+            f"网格过小：H={H}, W={W}，建议至少 H>=181, W>=360"
+        )
+    if embed_dim < 256:
+        raise ValueError(f"embed_dim={embed_dim} 过小，建议 >=256")
+    if depth < 6:
+        raise ValueError(f"depth={depth} 过小，建议 >=6")
+
+    h_patches = (H + ph - 1) // ph
+    w_patches = (W + pw - 1) // pw
+    if h_patches < 24 or w_patches < 48:
+        raise ValueError(
+            f"patch 后网格过小：h_patches={h_patches}, w_patches={w_patches}，"
+            "请减小 patch_size 或增大图像分辨率"
+        )
+
+
 def align_step(model, batch, optimizer, cfg, grad_accum_steps, batch_idx):
     device = next(model.parameters()).device
     data, dt_data = batch
@@ -76,6 +112,16 @@ def align_step(model, batch, optimizer, cfg, grad_accum_steps, batch_idx):
     max_tgt_steps = cfg["alignment"]["max_target_steps"]
     target_dt = cfg["alignment"]["target_dt"]
     sub_steps_list = cfg["alignment"]["sub_steps"]
+    _, _, C, H, W = data.shape
+    exp_c = int(cfg["model"]["in_channels"])
+    exp_h = int(cfg["model"]["img_height"])
+    exp_w = int(cfg["model"]["img_width"])
+    if C != exp_c:
+        raise ValueError(f"训练数据通道数 C={C}，但模型配置为 C={exp_c}")
+    if H != exp_h or W != exp_w:
+        raise ValueError(
+            f"训练数据网格为 HxW={H}x{W}，但模型配置为 {exp_h}x{exp_w}"
+        )
 
     x_ctx = data[:, :cond_steps]
     x_targets = data[:, cond_steps:]
@@ -204,9 +250,20 @@ def align(cfg):
             ckpt_path, map_location="cpu", weights_only=False,
         )
         if "cfg" in ckpt_state and "model" in ckpt_state["cfg"]:
-            cfg["model"].update(ckpt_state["cfg"]["model"])
+            ckpt_model_cfg = ckpt_state["cfg"]["model"]
+            # 保持当前任务的通道和网格设定，不被旧检查点回退覆盖。
+            keep_keys = {
+                "in_channels", "out_channels", "patch_size",
+                "img_height", "img_width",
+            }
+            for k, v in ckpt_model_cfg.items():
+                if k in keep_keys:
+                    continue
+                cfg["model"][k] = v
         if rank == 0:
             logger.info(f"已从检查点加载配置： {ckpt_path}")
+
+    validate_model_grid_cfg(cfg)
 
     model = UniPhyModel(
         in_channels=cfg["model"]["in_channels"],
@@ -243,6 +300,9 @@ def align(cfg):
         is_train=True,
         dt_ref=cfg["model"]["dt_ref"],
         sampling_mode=cfg["data"]["sampling_mode"],
+        expected_channels=cfg["model"]["in_channels"],
+        min_img_height=cfg["model"]["img_height"],
+        min_img_width=cfg["model"]["img_width"],
     )
 
     train_sampler = DistributedSampler(
