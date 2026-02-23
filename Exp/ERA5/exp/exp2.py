@@ -15,7 +15,7 @@ from ModelUniPhy import UniPhyModel
 
 def load_config_and_model(ckpt_path, device):
     if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(f"Checkpoint not found: {ckpt_path}")
+        raise FileNotFoundError(f"未找到检查点: {ckpt_path}")
     checkpoint = torch.load(ckpt_path, map_location="cpu")
     if "cfg" in checkpoint:
         model_cfg = checkpoint["cfg"]["model"]
@@ -104,9 +104,9 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
     try:
         model, cfg = load_config_and_model(ckpt_path, device)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"错误: {e}")
         return
-    print("Scanning all blocks for spectral properties...")
+    print("正在扫描所有模块的谱特性...")
     all_evals_real = []
     all_evals_imag = []
     all_growth_curves = []
@@ -115,7 +115,7 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
     common_t = None
     common_normal = None
     for i, block in enumerate(model.blocks):
-        print(f"  Analyzing Block {i}...")
+        print(f"  分析模块 {i}...")
         L = extract_block_operator(
             block, model.embed_dim,
             model.h_patches, model.w_patches,
@@ -150,7 +150,7 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
     fig_height = 3.4
     fig = plt.figure(figsize=(fig_width, fig_height), dpi=600)
     fig.suptitle(
-        "Spectral Evidence of Transient Instability (All Layers)",
+        "瞬态不稳定性的谱证据（全层）",
         fontsize=13,
         fontweight="bold",
         y=1.02
@@ -160,14 +160,14 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
     ax1.scatter(
         all_evals_real, all_evals_imag,
         alpha=0.5, c="#1f77b4", edgecolors="none",
-        s=15, zorder=3, label="Eigenvalues"
+        s=15, zorder=3, label="特征值"
     )
     ax1.axvline(0, color="black", linestyle="--", linewidth=1, zorder=2)
     ax1.axhline(0, color="gray", linestyle="-", linewidth=0.5, alpha=0.5)
-    ax1.set_xlabel("Real Part (Growth/Decay)")
-    ax1.set_ylabel("Imaginary Part (Frequency)")
+    ax1.set_xlabel("实部（增长/衰减）")
+    ax1.set_ylabel("虚部（频率）")
     ax1.set_title(
-        r"(a) Global Spectrum (Re $\lambda < 0$)",
+        r"(a) 全局谱分布（Re $\lambda < 0$）",
         fontsize=10,
         fontweight="normal",
         pad=12
@@ -183,7 +183,7 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
     )
     ax1.text(
         0.05, 0.95,
-        "Stable\nRegion",
+        "稳定\n区域",
         transform=ax1.transAxes,
         fontsize=9,
         verticalalignment="top",
@@ -203,12 +203,12 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
     ax2.plot(
         common_t, all_growth_curves[best_layer_idx],
         color="#c0392b", linewidth=2.2,
-        label=f"Max Growth (Layer {best_layer_idx})", zorder=4
+        label=f"最大增长（层 {best_layer_idx})", zorder=4
     )
     ax2.plot(
         common_t, common_normal,
         color="#2c3e50", linestyle="--", linewidth=1.8,
-        alpha=0.8, label="Normal Decay Ref.", zorder=3
+        alpha=0.8, label="正常衰减参考", zorder=3
     )
     peak_idx = np.argmax(all_growth_curves[best_layer_idx])
     peak_t = common_t[peak_idx]
@@ -223,7 +223,7 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
             linewidth=0.8
         )
         ax2.annotate(
-            "Transient Peak",
+            "瞬态峰值",
             xy=(peak_t, peak_e),
             xytext=(peak_t + 12.0, peak_e - 3.0),
             arrowprops=dict(
@@ -239,10 +239,10 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
             va="center",
             bbox=props_b
         )
-    ax2.set_xlabel("Forecast Time (Steps)")
-    ax2.set_ylabel(r"Energy Gain $\|e^{\mathcal{L}t}\|$")
+    ax2.set_xlabel("预测时间（步）")
+    ax2.set_ylabel(r"能量增益 $\|e^{\mathcal{L}t}\|$")
     ax2.set_title(
-        "(b) Non-Normal Amplification",
+        "（b）非正规放大",
         fontsize=10,
         fontweight="normal",
         pad=12
@@ -267,11 +267,10 @@ def plot_spectral_analysis(ckpt_path, save_path="transient_growth.pdf"):
         pad_inches=0.05,
         dpi=600
     )
-    print(f"Figure saved to {save_path}")
+    print(f"图像已保存到 {save_path}")
     plt.close(fig)
 
 
 if __name__ == "__main__":
     ckpt_file = "./uniphy/align_ckpt/align_epoch10.pt"
     plot_spectral_analysis(ckpt_file)
-

@@ -12,7 +12,7 @@ from ModelUniPhy import UniPhyModel
 
 def load_config_and_model(ckpt_path, device):
     if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(f"Checkpoint not found: {ckpt_path}")
+        raise FileNotFoundError(f"未找到检查点: {ckpt_path}")
     checkpoint = torch.load(ckpt_path, map_location="cpu")
     if "cfg" in checkpoint:
         model_cfg = checkpoint["cfg"]["model"]
@@ -56,7 +56,7 @@ def visualize_riemannian_perception(
     try:
         model, cfg = load_config_and_model(ckpt_path, device)
     except Exception as e:
-        print(f"Error loading model: {e}")
+        print(f"加载模型出错: {e}")
         return
     pos_emb = model.encoder.pos_emb.detach().cpu()
     _, dim, h_p, w_p = pos_emb.shape
@@ -75,7 +75,7 @@ def visualize_riemannian_perception(
         inverse_metric.max() - inverse_metric.min()
     )
     correlation = np.corrcoef(zonal_mean_norm, inverse_metric_norm)[0, 1]
-    print(f"Correlation with Inverse Metric (Compensation): {correlation:.4f}")
+    print(f"与逆度量（补偿）的相关性: {correlation:.4f}")
     plt.rcParams.update({
         "font.family": "serif",
         "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
@@ -99,7 +99,7 @@ def visualize_riemannian_perception(
     fig_height = 3.6
     fig = plt.figure(figsize=(fig_width, fig_height), dpi=600)
     fig.suptitle(
-        "Mechanistic Verification: Learning to Compensate Geometric Distortion",
+        "机理验证：学习补偿几何畸变",
         fontsize=13,
         fontweight="bold",
         y=1.02
@@ -116,19 +116,19 @@ def visualize_riemannian_perception(
         interpolation="bilinear"
     )
     ax1.set_title(
-        r"(a) Learned Spatial Gauge Field $\sigma_\phi(\mathbf{x})$",
+        r"(a) 学习结果 Spatial Gauge Field $\sigma_\phi(\mathbf{x})$",
         fontsize=10,
         fontweight="normal",
         pad=12
     )
-    ax1.set_xlabel("Longitude (°)")
-    ax1.set_ylabel("Latitude (°)")
+    ax1.set_xlabel("经度（°）")
+    ax1.set_ylabel("纬度（°）")
     ax1.set_xticks([-180, -90, 0, 90, 180])
     ax1.set_yticks([-90, -45, 0, 45, 90])
     cbar = fig.colorbar(im, cax=cax)
     cbar.ax.tick_params(labelsize=8)
     cbar.set_label(
-        r"$\|\mathbf{h}\|_2$ (norm.)",
+        r"$\|\mathbf{h}\|_2$（归一化）",
         fontsize=9,
         rotation=270,
         labelpad=14
@@ -142,7 +142,7 @@ def visualize_riemannian_perception(
         linestyle="--",
         linewidth=1.8,
         alpha=0.85,
-        label=r"Theory: $(\cos\phi)^{-1}$",
+        label=r"理论：$(\cos\phi)^{-1}$",
         zorder=2
     )
     ax2.plot(
@@ -150,7 +150,7 @@ def visualize_riemannian_perception(
         latitudes,
         color=color_learned,
         linewidth=2.2,
-        label="Learned",
+        label="学习结果",
         zorder=3
     )
     ax2.fill_betweenx(
@@ -181,13 +181,13 @@ def visualize_riemannian_perception(
         fontweight="bold"
     )
     ax2.set_title(
-        "(b) Geometric Compensation",
+        "（b）几何补偿",
         fontsize=10,
         fontweight="normal",
         pad=12
     )
-    ax2.set_xlabel("Normalized Magnitude")
-    ax2.set_ylabel("Latitude (°)")
+    ax2.set_xlabel("归一化幅值")
+    ax2.set_ylabel("纬度（°）")
     ax2.set_yticks([-90, -45, 0, 45, 90])
     ax2.set_xlim(-0.05, 1.10)
     ax2.set_ylim(-90, 90)
@@ -216,11 +216,10 @@ def visualize_riemannian_perception(
         pad_inches=0.05,
         dpi=600
     )
-    print(f"Figure saved to {save_path}")
+    print(f"图像已保存到 {save_path}")
     plt.close(fig)
 
 
 if __name__ == "__main__":
     ckpt_file = "./uniphy/align_ckpt/align_epoch10.pt"
     visualize_riemannian_perception(ckpt_file)
-

@@ -89,10 +89,10 @@ def get_test_data(device):
         data, _ = next(iter(loader))
         x_ctx = data[:, 0:1].to(device)
         x_target = data[:, 2].to(device)
-        print("✅ Real ERA5 data loaded successfully.")
+        print("✅ ERA5 真实数据加载成功。")
         return x_ctx, x_target
     except Exception as e:
-        print(f"⚠️ Data loading failed ({e}). Using random tensors.")
+        print(f"⚠️ 数据加载失败（{e}）。将使用随机张量。")
         x_ctx = torch.randn(1, 1, 30, 721, 1440, device=device)
         x_target = torch.randn(1, 30, 721, 1440, device=device)
         return x_ctx, x_target
@@ -129,7 +129,7 @@ def rollout_ensemble_mean_last(model, x_ctx, dt_step, total_hours, dt_context, s
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("=" * 65)
-    print("🧪 Experiment 4: Temporal Consistency (Ensemble-Mean forward_rollout)")
+    print("🧪 实验 4：时间一致性（forward_rollout 集合均值）")
     print("=" * 65)
 
     x_ctx, x_target = get_test_data(device)
@@ -138,8 +138,8 @@ def main():
     ckpt_align_list = sorted(glob.glob("./uniphy/align_ckpt/*.pt"), key=os.path.getmtime)
 
     checkpoints = {
-        "Pre-trained": ckpt_pre_list[-1] if ckpt_pre_list else None,
-        "Fine-tuned": ckpt_align_list[-1] if ckpt_align_list else None,
+        "预训练": ckpt_pre_list[-1] if ckpt_pre_list else None,
+        "微调后": ckpt_align_list[-1] if ckpt_align_list else None,
     }
 
     results = {}
@@ -149,8 +149,8 @@ def main():
             results[name] = {dt: float("nan") for dt in DT_LIST}
             continue
 
-        print(f"🔄 Evaluating {name} Model...")
-        print(f"   Path: {ckpt_path}")
+        print(f"🔄 正在评估 {name} 模型...")
+        print(f"   路径: {ckpt_path}")
 
         model, cfg = load_config_and_model(ckpt_path, device)
         if model is None:
@@ -172,9 +172,9 @@ def main():
                 mse = torch.mean((x_pred - x_target) ** 2)
                 rmse = torch.sqrt(mse).item()
                 model_res[dt] = rmse
-                print(f"   -> dt={dt}h ({int(TOTAL_HOURS // dt)} steps): RMSE = {rmse:.4f}")
+                print(f"   -> dt={dt}h（{int(TOTAL_HOURS // dt)} 步）: RMSE = {rmse:.4f}")
             except Exception as e:
-                print(f"   -> dt={dt}h: Failed ({e})")
+                print(f"   -> dt={dt}h: 失败（{e}）")
                 model_res[dt] = float("nan")
 
         results[name] = model_res
@@ -182,21 +182,20 @@ def main():
         torch.cuda.empty_cache()
 
     print("\n" + "=" * 65)
-    print(f"{'Model Type':<15} | {'dt=1h':<10} | {'dt=2h':<10} | {'dt=3h':<10} | {'dt=6h':<10}")
+    print(f"{'模型类型':<15} | {'dt=1h':<10} | {'dt=2h':<10} | {'dt=3h':<10} | {'dt=6h':<10}")
     print("-" * 65)
 
-    for name in ["Pre-trained", "Fine-tuned"]:
+    for name in ["预训练", "微调后"]:
         row = f"{name:<15} | "
         res = results.get(name, {})
         for dt in DT_LIST:
             val = res.get(dt, float("nan"))
-            row += f"{('N/A' if np.isnan(val) else f'{val:.4f}'):<10} | "
+            row += f"{('无' if np.isnan(val) else f'{val:.4f}'):<10} | "
         print(row)
 
     print("=" * 65)
-    print("Method: ensemble-mean over member_idx in forward_rollout")
+    print("方法：在 forward_rollout 中对 member_idx 做集合均值")
 
 
 if __name__ == "__main__":
     main()
-

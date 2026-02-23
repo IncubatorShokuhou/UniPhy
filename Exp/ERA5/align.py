@@ -182,11 +182,11 @@ def align(cfg):
 
     if rank == 0:
         logger.info("=" * 60)
-        logger.info("UniPhy Alignment Training")
-        logger.info(f"  Condition Steps: {cond_steps}")
-        logger.info(f"  Max Target Steps: {max_tgt_steps}")
-        logger.info(f"  Sample K: {sample_k}")
-        logger.info(f"  Sub Steps: {cfg['alignment']['sub_steps']}")
+        logger.info("UniPhy 对齐训练")
+        logger.info(f"  条件步数： {cond_steps}")
+        logger.info(f"  最大目标步数： {max_tgt_steps}")
+        logger.info(f"  采样 K： {sample_k}")
+        logger.info(f"  子步数： {cfg['alignment']['sub_steps']}")
         logger.info("=" * 60)
 
         if cfg["logging"]["use_wandb"]:
@@ -206,7 +206,7 @@ def align(cfg):
         if "cfg" in ckpt_state and "model" in ckpt_state["cfg"]:
             cfg["model"].update(ckpt_state["cfg"]["model"])
         if rank == 0:
-            logger.info(f"Loaded config from checkpoint: {ckpt_path}")
+            logger.info(f"已从检查点加载配置： {ckpt_path}")
 
     model = UniPhyModel(
         in_channels=cfg["model"]["in_channels"],
@@ -225,7 +225,7 @@ def align(cfg):
 
     if ckpt_state is not None:
         if rank == 0:
-            logger.info("Loading model weights from checkpoint")
+            logger.info("正在从检查点加载模型权重")
         state_dict = ckpt_state["model"]
         clean_state = {
             k.replace("module.", ""): v for k, v in state_dict.items()
@@ -304,7 +304,7 @@ def align(cfg):
             )
             progress.start()
             task_id = progress.add_task(
-                f"Epoch {epoch + 1}/{epochs}",
+                f"第 {epoch + 1}/{epochs} 轮",
                 total=len(train_loader),
             )
 
@@ -320,12 +320,12 @@ def align(cfg):
                 if (batch_idx + 1) % log_every == 0:
                     log_msg = (
                         f"[E{epoch + 1:02d}] "
-                        f"cond={metrics['cond_steps']} "
-                        f"t={metrics['target_t']} "
-                        f"sub={metrics['sub_step']} "
-                        f"n={metrics['n_iters']} "
+                        f"条件步={metrics['cond_steps']} "
+                        f"目标步={metrics['target_t']} "
+                        f"子步={metrics['sub_step']} "
+                        f"迭代={metrics['n_iters']} "
                         f"dt={metrics['total_dt']:.0f}h | "
-                        f"Loss: {metrics['loss']:.4f} "
+                        f"损失: {metrics['loss']:.4f} "
                         f"RMSE: {metrics['rmse']:.4f}"
                     )
                     progress.console.print(log_msg)
@@ -361,7 +361,7 @@ def align(cfg):
             save_checkpoint(
                 model, optimizer, epoch, global_step, cfg, ckpt_save_path,
             )
-            logger.info(f"Saved checkpoint: {ckpt_save_path}")
+            logger.info(f"已保存检查点： {ckpt_save_path}")
 
         dist.barrier()
 
@@ -372,7 +372,7 @@ def align(cfg):
         save_checkpoint(
             model, optimizer, epochs - 1, global_step, cfg, final_ckpt_path,
         )
-        logger.info(f"Saved final checkpoint: {final_ckpt_path}")
+        logger.info(f"已保存最终检查点： {final_ckpt_path}")
 
         if cfg["logging"]["use_wandb"]:
             wandb.finish()

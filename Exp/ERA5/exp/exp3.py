@@ -16,7 +16,7 @@ from ModelUniPhy import UniPhyModel
 
 def load_config_and_model(ckpt_path, device):
     if not os.path.exists(ckpt_path):
-        raise FileNotFoundError(f"Checkpoint not found: {ckpt_path}")
+        raise FileNotFoundError(f"未找到检查点: {ckpt_path}")
 
     checkpoint = torch.load(ckpt_path, map_location="cpu")
 
@@ -108,10 +108,10 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
     try:
         model, cfg = load_config_and_model(ckpt_path, device)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"错误: {e}")
         return
 
-    print("Scanning all blocks for hierarchical memory structure...")
+    print("正在扫描所有模块的层级记忆结构...")
 
     all_taus = []
     block_taus = {}
@@ -126,13 +126,13 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
             device,
         )
         all_taus.append(taus)
-        block_taus[f"Block {i}"] = taus
-        print(f"  Block {i}: Found {len(taus)} stable modes.")
+        block_taus[f"模块 {i}"] = taus
+        print(f"  模块 {i}: 发现 {len(taus)} 个稳定模态。")
 
     tau_days = np.concatenate(all_taus)
 
     if len(tau_days) == 0:
-        print("No valid timescales extracted.")
+        print("未提取到有效时间尺度。")
         return
 
     tau_days_viz = np.clip(tau_days, 0, 60)
@@ -141,10 +141,10 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
     medium = np.sum((tau_days >= 5) & (tau_days < 20))
     long_term = np.sum(tau_days >= 20)
 
-    print(f"\nSystem Memory Distribution (All Layers):")
-    print(f"  Short (< 5 days):   {short / total * 100:.1f}%")
-    print(f"  Medium (5-20 days): {medium / total * 100:.1f}%")
-    print(f"  Long (> 20 days):   {long_term / total * 100:.1f}%")
+    print(f"\n系统记忆分布（全层）：")
+    print(f"  短时（< 5 天）：   {short / total * 100:.1f}%")
+    print(f"  中期（5-20 天）： {medium / total * 100:.1f}%")
+    print(f"  长期（> 20 天）：   {long_term / total * 100:.1f}%")
 
     plt.rcParams.update({
         "font.family": "serif",
@@ -166,7 +166,7 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
         color="#2ca02c",
         alpha=0.3,
         linewidth=2.5,
-        label="Learned Hierarchy",
+        label="学习到的层级",
         clip=(0, 60),
         bw_adjust=0.6,
         ax=ax1,
@@ -189,14 +189,14 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
             boxstyle="round,pad=0.3", fc="white", ec="#dddddd", alpha=0.85
         ),
     )
-    ax1.text(2.5, y_max * 0.96, "Synoptic\n(< 5 days)", **text_style)
-    ax1.text(12.5, y_max * 0.96, "Sub-seasonal\n(5-20 days)", **text_style)
-    ax1.text(40, y_max * 0.96, "Long-term\n(> 20 days)", **text_style)
+    ax1.text(2.5, y_max * 0.96, "天气尺度\n（< 5 天）", **text_style)
+    ax1.text(12.5, y_max * 0.96, "次季节尺度\n（5-20 天）", **text_style)
+    ax1.text(40, y_max * 0.96, "长期\n（> 20 天）", **text_style)
 
-    ax1.set_xlabel("Characteristic Memory Timescale (Days)")
-    ax1.set_ylabel("Probability Density")
+    ax1.set_xlabel("特征记忆时间尺度（天）")
+    ax1.set_ylabel("概率密度")
     ax1.set_title(
-        "(a) Spectral Distribution of Memory Timescales",
+        "(a) 记忆时间尺度的谱分布",
         fontweight="bold",
         pad=10,
     )
@@ -259,7 +259,7 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
         linestyle="--",
         alpha=0.6,
         linewidth=1,
-        label="5-day threshold",
+        label="5 天阈值",
     )
     ax2.axhline(
         y=20,
@@ -267,13 +267,13 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
         linestyle=":",
         alpha=0.6,
         linewidth=1,
-        label="20-day threshold",
+        label="20 天阈值",
     )
 
-    ax2.set_xlabel("Network Depth")
-    ax2.set_ylabel("Memory Timescale (Days)")
+    ax2.set_xlabel("网络深度")
+    ax2.set_ylabel("记忆时间尺度（天）")
     ax2.set_title(
-        "(b) Hierarchical Memory Structure by Layer",
+        "(b) 按层的层级记忆结构",
         fontweight="bold",
         pad=10,
     )
@@ -284,15 +284,15 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(0, y_upper))
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax2, shrink=0.6, aspect=20, pad=0.02)
-    cbar.set_label("Median Timescale (Days)", fontsize=10)
+    cbar.set_label("中位时间尺度（天）", fontsize=10)
 
     plt.tight_layout()
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight")
-    print(f"\nFigure saved to {save_path}")
+    print(f"\n图像已保存到 {save_path}")
 
     png_path = save_path.replace(".pdf", ".png")
     plt.savefig(png_path, format="png", dpi=300, bbox_inches="tight")
-    print(f"PNG version saved to {png_path}")
+    print(f"PNG 版本已保存到 {png_path}")
 
     plt.show()
 
@@ -300,4 +300,3 @@ def analyze_memory_timescales(ckpt_path, save_path="memory_timescales.pdf"):
 if __name__ == "__main__":
     ckpt_file = "./uniphy/align_ckpt/align_epoch10.pt"
     analyze_memory_timescales(ckpt_file)
-

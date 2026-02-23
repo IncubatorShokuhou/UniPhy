@@ -33,7 +33,7 @@ def sequential_pscan_mat(A, X):
 
 def check_forward_diag():
     print("=" * 60)
-    print("Testing Forward Pass (Diagonal Mode)")
+    print("测试前向传播（对角模式）")
     print("=" * 60)
     torch.manual_seed(42)
     B, L, C, D = 2, 16, 4, 2
@@ -47,21 +47,21 @@ def check_forward_diag():
     max_diff = (Y_seq - Y_par).abs().max().item()
     mean_diff = (Y_seq - Y_par).abs().mean().item()
 
-    print(f"Shape A: {A.shape}")
-    print(f"Shape X: {X.shape}")
-    print(f"Shape Y: {Y_par.shape}")
-    print(f"Max Difference: {max_diff:.2e}")
-    print(f"Mean Difference: {mean_diff:.2e}")
+    print(f"A 形状: {A.shape}")
+    print(f"X 形状: {X.shape}")
+    print(f"Y 形状: {Y_par.shape}")
+    print(f"最大差异: {max_diff:.2e}")
+    print(f"平均差异: {mean_diff:.2e}")
 
     passed = max_diff < 1e-4
-    print(f"Test Passed: {passed}")
+    print(f"测试通过: {passed}")
     print()
     return passed
 
 
 def check_forward_mat():
     print("=" * 60)
-    print("Testing Forward Pass (Matrix Mode)")
+    print("测试前向传播（矩阵模式）")
     print("=" * 60)
     torch.manual_seed(42)
     B, L, C, D = 2, 16, 4, 2
@@ -75,21 +75,21 @@ def check_forward_mat():
     max_diff = (Y_seq - Y_par).abs().max().item()
     mean_diff = (Y_seq - Y_par).abs().mean().item()
 
-    print(f"Shape A: {A.shape}")
-    print(f"Shape X: {X.shape}")
-    print(f"Shape Y: {Y_par.shape}")
-    print(f"Max Difference: {max_diff:.2e}")
-    print(f"Mean Difference: {mean_diff:.2e}")
+    print(f"A 形状: {A.shape}")
+    print(f"X 形状: {X.shape}")
+    print(f"Y 形状: {Y_par.shape}")
+    print(f"最大差异: {max_diff:.2e}")
+    print(f"平均差异: {mean_diff:.2e}")
 
     passed = max_diff < 1e-4
-    print(f"Test Passed: {passed}")
+    print(f"测试通过: {passed}")
     print()
     return passed
 
 
 def check_backward_diag():
     print("=" * 60)
-    print("Testing Backward Pass (Diagonal Mode)")
+    print("测试反向传播（对角模式）")
     print("=" * 60)
     torch.manual_seed(42)
     B, L, C, D = 2, 16, 4, 2
@@ -115,20 +115,20 @@ def check_backward_diag():
     dX_max_diff = (X_seq.grad - X_par.grad).abs().max().item()
     dX_mean_diff = (X_seq.grad - X_par.grad).abs().mean().item()
 
-    print(f"dA Max Difference: {dA_max_diff:.2e}")
-    print(f"dA Mean Difference: {dA_mean_diff:.2e}")
-    print(f"dX Max Difference: {dX_max_diff:.2e}")
-    print(f"dX Mean Difference: {dX_mean_diff:.2e}")
+    print(f"dA 最大差异: {dA_max_diff:.2e}")
+    print(f"dA 平均差异: {dA_mean_diff:.2e}")
+    print(f"dX 最大差异: {dX_max_diff:.2e}")
+    print(f"dX 平均差异: {dX_mean_diff:.2e}")
 
     passed = dA_max_diff < 1e-3 and dX_max_diff < 1e-3
-    print(f"Test Passed: {passed}")
+    print(f"测试通过: {passed}")
     print()
     return passed
 
 
 def check_backward_mat():
     print("=" * 60)
-    print("Testing Backward Pass (Matrix Mode)")
+    print("测试反向传播（矩阵模式）")
     print("=" * 60)
     torch.manual_seed(42)
     B, L, C, D = 2, 16, 4, 2
@@ -154,20 +154,20 @@ def check_backward_mat():
     dX_max_diff = (X_seq.grad - X_par.grad).abs().max().item()
     dX_mean_diff = (X_seq.grad - X_par.grad).abs().mean().item()
 
-    print(f"dA Max Difference: {dA_max_diff:.2e}")
-    print(f"dA Mean Difference: {dA_mean_diff:.2e}")
-    print(f"dX Max Difference: {dX_max_diff:.2e}")
-    print(f"dX Mean Difference: {dX_mean_diff:.2e}")
+    print(f"dA 最大差异: {dA_max_diff:.2e}")
+    print(f"dA 平均差异: {dA_mean_diff:.2e}")
+    print(f"dX 最大差异: {dX_max_diff:.2e}")
+    print(f"dX 平均差异: {dX_mean_diff:.2e}")
 
     passed = dA_max_diff < 1e-3 and dX_max_diff < 1e-3
-    print(f"Test Passed: {passed}")
+    print(f"测试通过: {passed}")
     print()
     return passed
 
 
 def check_various_shapes():
     print("=" * 60)
-    print("Testing Various Shapes")
+    print("测试多种形状")
     print("=" * 60)
 
     shapes = [
@@ -198,7 +198,7 @@ def check_various_shapes():
         passed_mat = diff_mat < 1e-4
         passed = passed_diag and passed_mat
 
-        print(f"Shape (B={B}, L={L}, C={C}, D={D}): Diag={diff_diag:.2e} Mat={diff_mat:.2e} Passed={passed}")
+        print(f"形状 (B={B}, L={L}, C={C}, D={D}): 对角={diff_diag:.2e} 矩阵={diff_mat:.2e} 通过={passed}")
         all_passed = all_passed and passed
 
     print()
@@ -207,7 +207,7 @@ def check_various_shapes():
 
 def check_long_sequence():
     print("=" * 60)
-    print("Testing Long Sequence")
+    print("测试长序列")
     print("=" * 60)
     torch.manual_seed(42)
     B, L, C, D = 2, 512, 4, 2
@@ -221,20 +221,20 @@ def check_long_sequence():
     max_diff = (Y_seq - Y_par).abs().max().item()
     mean_diff = (Y_seq - Y_par).abs().mean().item()
 
-    print(f"Shape A: {A.shape}")
-    print(f"Shape X: {X.shape}")
-    print(f"Max Difference: {max_diff:.2e}")
-    print(f"Mean Difference: {mean_diff:.2e}")
+    print(f"A 形状: {A.shape}")
+    print(f"X 形状: {X.shape}")
+    print(f"最大差异: {max_diff:.2e}")
+    print(f"平均差异: {mean_diff:.2e}")
 
     passed = max_diff < 1e-3
-    print(f"Test Passed: {passed}")
+    print(f"测试通过: {passed}")
     print()
     return passed
 
 
 def check_4d_input():
     print("=" * 60)
-    print("Testing 4D Input (Auto Squeeze)")
+    print("测试 4D 输入（自动压缩）")
     print("=" * 60)
     torch.manual_seed(42)
     B, L, C, D = 2, 16, 4, 2
@@ -244,19 +244,19 @@ def check_4d_input():
 
     Y_par = pscan(A, X)
 
-    print(f"Shape A: {A.shape}")
-    print(f"Shape X: {X.shape}")
-    print(f"Shape Y: {Y_par.shape}")
+    print(f"A 形状: {A.shape}")
+    print(f"X 形状: {X.shape}")
+    print(f"Y 形状: {Y_par.shape}")
 
     passed = Y_par.shape == X.shape
-    print(f"Output shape matches input: {passed}")
+    print(f"输出形状与输入一致: {passed}")
     print()
     return passed
 
 
 def benchmark():
     print("=" * 60)
-    print("Benchmark")
+    print("性能基准")
     print("=" * 60)
 
     torch.manual_seed(42)
@@ -285,41 +285,41 @@ def benchmark():
     torch.cuda.synchronize()
     par_time = (time.time() - start) / n_iters * 1000
 
-    print(f"Shape: B={B}, L={L}, C={C}, D={D}")
-    print(f"Sequential Time: {seq_time:.3f} ms")
-    print(f"Parallel Time: {par_time:.3f} ms")
-    print(f"Speedup: {seq_time / par_time:.2f}x")
+    print(f"形状: B={B}, L={L}, C={C}, D={D}")
+    print(f"串行耗时: {seq_time:.3f} ms")
+    print(f"并行耗时: {par_time:.3f} ms")
+    print(f"加速比: {seq_time / par_time:.2f}x")
     print()
 
 
 def main():
     print("=" * 60)
-    print("PScan Correctness Check")
+    print("PScan 正确性检查")
     print("=" * 60)
     print()
 
     results = {}
 
-    results["forward_diag"] = check_forward_diag()
-    results["forward_mat"] = check_forward_mat()
-    results["backward_diag"] = check_backward_diag()
-    results["backward_mat"] = check_backward_mat()
-    results["various_shapes"] = check_various_shapes()
-    results["long_sequence"] = check_long_sequence()
-    results["4d_input"] = check_4d_input()
+    results["前向_对角"] = check_forward_diag()
+    results["前向_矩阵"] = check_forward_mat()
+    results["反向_对角"] = check_backward_diag()
+    results["反向_矩阵"] = check_backward_mat()
+    results["多形状"] = check_various_shapes()
+    results["长序列"] = check_long_sequence()
+    results["4d输入"] = check_4d_input()
 
     print("=" * 60)
-    print("Summary")
+    print("汇总")
     print("=" * 60)
 
     all_passed = True
     for name, passed in results.items():
-        status = "PASSED" if passed else "FAILED"
+        status = "通过" if passed else "失败"
         print(f"{name}: {status}")
         all_passed = all_passed and passed
 
     print()
-    print(f"Overall: {'ALL TESTS PASSED' if all_passed else 'SOME TESTS FAILED'}")
+    print(f"总体结果: {'全部测试通过' if all_passed else '部分测试失败'}")
     print()
 
     benchmark()

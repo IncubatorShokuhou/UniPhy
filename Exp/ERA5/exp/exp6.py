@@ -43,7 +43,7 @@ CHANNEL_NAMES = SURFACE_VARS + PRESSURE_VARS
 def pick_ckpt_path():
     paths = sorted(glob.glob(CKPT_GLOB), key=os.path.getmtime)
     if not paths:
-        raise FileNotFoundError(f"No checkpoints found: {CKPT_GLOB}")
+        raise FileNotFoundError(f"未找到检查点: {CKPT_GLOB}")
     return paths[-1]
 
 
@@ -52,7 +52,7 @@ def load_model(device):
     ckpt = torch.load(ckpt_path, map_location="cpu")
 
     if "cfg" not in ckpt or "model" not in ckpt["cfg"] or "model" not in ckpt:
-        raise ValueError("Checkpoint must contain keys: cfg.model and model")
+        raise ValueError("检查点必须包含键：cfg.model 和 model")
 
     model_cfg = dict(ckpt["cfg"]["model"])
     if "patch_size" in model_cfg:
@@ -140,8 +140,8 @@ def main():
     os.makedirs(OUTDIR, exist_ok=True)
 
     model, dt_ref, ensemble_size, ckpt_path = load_model(device)
-    print(f"Using ckpt: {ckpt_path}")
-    print(f"dt_ref={dt_ref}, ensemble_size={ensemble_size}")
+    print(f"使用检查点: {ckpt_path}")
+    print(f"参考时间步 dt_ref={dt_ref}, 集合规模 ensemble_size={ensemble_size}")
 
     data, ds = get_sample(dt_ref, device)
     x_ctx = data[:, : int(COND_STEPS)]
@@ -152,7 +152,7 @@ def main():
     n_channels = min(pred.shape[1], len(CHANNEL_NAMES))
     for c in range(n_channels):
         name = CHANNEL_NAMES[c]
-        print("GIF:", name)
+        print("生成 GIF:", name)
         save_channel_gif(pred[:, c], name)
 
     ds.cleanup()
@@ -160,4 +160,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

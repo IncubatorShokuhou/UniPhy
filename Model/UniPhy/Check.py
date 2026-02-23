@@ -47,7 +47,7 @@ def full_serial_inference(model, x_context, dt_context, dt_list):
 
 def check_precision_robustness():
     print("=" * 60)
-    print("Double Precision Verification (float64)")
+    print("双精度校验（float64）")
     print("=" * 60)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -64,7 +64,7 @@ def check_precision_robustness():
     x = torch.randn(B, T, C, H, W, device=device).double()
     dt = torch.ones(B, T, device=device).double() * 0.1
 
-    print("Running Test 1: Parallel vs Serial (Basic Forward)...")
+    print("运行测试 1：并行与串行（基础前向）对比...")
     with torch.no_grad():
         out_parallel = model(x, dt)
 
@@ -86,10 +86,10 @@ def check_precision_robustness():
         out_serial = torch.stack(out_serial, dim=1)
 
     diff_1 = (out_parallel - out_serial).abs().max().item()
-    print(f"Test 1 Max Diff: {diff_1:.2e}")
+    print(f"测试 1 最大差异: {diff_1:.2e}")
 
     print("-" * 60)
-    print("Running Test 2: Optimized Rollout vs Full Serial...")
+    print("运行测试 2：优化滚动预测与完整串行对比...")
 
     B, T_in, T_pred = 2, 8, 4
     x_context = torch.randn(B, T_in, C, H, W, device=device).double()
@@ -106,15 +106,15 @@ def check_precision_robustness():
         )
 
     diff_2 = (out_optimized - out_full_serial).abs().max().item()
-    print(f"Test 2 Max Diff: {diff_2:.2e}")
+    print(f"测试 2 最大差异: {diff_2:.2e}")
 
     print("=" * 60)
     passed = diff_1 < 1e-10 and diff_2 < 1e-10
 
     if passed:
-        print("RESULT: PASSED")
+        print("结果：通过")
     else:
-        print("RESULT: FAILED")
+        print("结果：失败")
 
     return passed
 

@@ -100,7 +100,7 @@ def get_vis_data(device):
         data, _ = next(iter(loader))
         return data.to(device)
     except Exception as e:
-        print(f"Data loading failed ({e}). Using random tensors.")
+        print(f"数据加载失败（{e}）。将使用随机张量。")
         return torch.randn(1, 3, 30, 721, 1440, device=device)
 
 
@@ -146,9 +146,9 @@ def find_best_channel(real_data, pre_seq, fine_seq, num_channels=30):
     best_improvement = -float("inf")
     channel_stats = []
 
-    print("\nChannel-wise RMSE comparison:")
+    print("\n按通道 RMSE 对比：")
     print("-" * 70)
-    print(f"{'Ch':>4} | {'Pre-RMSE':>10} | {'Fine-RMSE':>10} | {'Improv%':>10} | {'Status'}")
+    print(f"{'通道':>4} | {'预训练RMSE':>10} | {'微调RMSE':>10} | {'提升%':>10} | {'状态'}")
     print("-" * 70)
 
     for ch in range(num_channels):
@@ -169,7 +169,7 @@ def find_best_channel(real_data, pre_seq, fine_seq, num_channels=30):
         if pre_rmse_avg > 1e-6:
             improvement = (pre_rmse_avg - fine_rmse_avg) / pre_rmse_avg * 100.0
 
-        status = "BETTER" if improvement > 0 else "WORSE"
+        status = "更好" if improvement > 0 else "更差"
         print(
             f"{ch:>4} | {pre_rmse_avg:>10.4f} | {fine_rmse_avg:>10.4f} | "
             f"{improvement:>+10.2f}% | {status}"
@@ -189,7 +189,7 @@ def find_best_channel(real_data, pre_seq, fine_seq, num_channels=30):
             best_ch = ch
 
     print("-" * 70)
-    print(f"Best channel: {best_ch} (improvement: {best_improvement:+.2f}%)")
+    print(f"最佳通道： {best_ch}（提升: {best_improvement:+.2f}%）")
     return best_ch, channel_stats
 
 
@@ -197,7 +197,7 @@ def visualize_comparison(real_data, pre_seq, fine_seq, channel_idx, save_path):
     step_indices = [5, 11]
     time_labels = ["6h", "12h"]
     gt_indices = [1, 2]
-    row_labels = ["Ground Truth", "Pre-trained", "Fine-tuned"]
+    row_labels = ["真实值", "预训练", "微调后"]
 
     fig, axes = plt.subplots(
         3, 2, figsize=(4.2, 4.0), gridspec_kw={"wspace": 0.05, "hspace": 0.15}
@@ -285,22 +285,22 @@ def visualize_comparison(real_data, pre_seq, fine_seq, channel_idx, save_path):
     cbar = fig.colorbar(im, cax=cbar_ax)
     cbar.ax.tick_params(labelsize=7, width=0.3, length=2)
     cbar.outline.set_linewidth(0.3)
-    cbar.set_label("Normalized", fontsize=8, labelpad=3)
+    cbar.set_label("归一化", fontsize=8, labelpad=3)
 
     fig.suptitle(
-        rf"Ensemble-Mean Temporal Generalization ($\Delta t$=1h) - Channel {channel_idx}",
+        rf"集合均值时间泛化（$\Delta t$=1h）- 通道 {channel_idx}",
         fontsize=10,
         y=0.98,
     )
 
     plt.savefig(save_path, format="pdf", dpi=300, bbox_inches="tight", pad_inches=0.02)
-    print(f"Figure saved to {save_path}")
+    print(f"图像已保存到 {save_path}")
 
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("=" * 60)
-    print("Experiment 5: Visualizing Temporal Consistency (Ensemble-Mean, dt=1h)")
+    print("实验 5：时间一致性可视化（集合均值，dt=1h）")
     print("=" * 60)
 
     data = get_vis_data(device)
@@ -312,10 +312,10 @@ def main():
     ckpt_align = ckpt_align_list[-1] if ckpt_align_list else None
 
     if not ckpt_pre or not ckpt_align:
-        print("Checkpoints not found.")
+        print("未找到检查点。")
         return
 
-    print("Inferencing Pre-trained (ensemble mean)...")
+    print("正在推理预训练模型（集合均值）...")
     model_pre, cfg_pre = load_config_and_model(ckpt_pre, device)
     dt_context_pre = float(cfg_pre.get("dt_ref", DT_REF)) if cfg_pre is not None else DT_REF
     seq_pre = run_inference_sequence_ensemble_mean(
@@ -324,7 +324,7 @@ def main():
     del model_pre
     torch.cuda.empty_cache()
 
-    print("Inferencing Fine-tuned (ensemble mean)...")
+    print("正在推理微调模型（集合均值）...")
     model_align, cfg_align = load_config_and_model(ckpt_align, device)
     dt_context_align = float(cfg_align.get("dt_ref", DT_REF)) if cfg_align is not None else DT_REF
     seq_align = run_inference_sequence_ensemble_mean(
@@ -336,10 +336,9 @@ def main():
     best_ch, _ = find_best_channel(data, seq_pre, seq_align, num_channels=30)
 
     save_name = f"forecast_comparison_dt1h_ensemblemean_ch{best_ch}.pdf"
-    print(f"\nPlotting best channel: {best_ch}...")
+    print(f"\n正在绘制最佳通道： {best_ch}...")
     visualize_comparison(data, seq_pre, seq_align, channel_idx=best_ch, save_path=save_name)
 
 
 if __name__ == "__main__":
     main()
-

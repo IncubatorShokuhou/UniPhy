@@ -247,7 +247,7 @@ def train(cfg):
     logger = setup_logging(cfg["logging"]["log_path"], rank)
 
     if rank == 0:
-        logger.info(f"Training started on {world_size} GPUs")
+        logger.info(f"训练启动，使用 {world_size}GPU")
 
     if cfg["train"]["use_tf32"]:
         torch.backends.cuda.matmul.allow_tf32 = True
@@ -344,7 +344,7 @@ def train(cfg):
             cfg["logging"]["ckpt"], model, optimizer, scheduler,
         )
         if rank == 0:
-            logger.info(f"Resumed from checkpoint: {cfg['logging']['ckpt']}")
+            logger.info(f"已从检查点恢复： {cfg['logging']['ckpt']}")
 
     log_every = cfg["logging"]["log_every"]
     save_interval = max(
@@ -372,7 +372,7 @@ def train(cfg):
         )
         progress.start()
         task_id = progress.add_task(
-            "Training",
+            "训练中",
             total=len(train_loader) * epochs,
             completed=global_step,
         )
@@ -402,11 +402,11 @@ def train(cfg):
                     current_lr = optimizer.param_groups[0]["lr"]
                     log_msg = (
                         f"[E{epoch + 1:03d} B{batch_idx + 1:04d}] "
-                        f"Loss: {metrics['loss']:.4f} | "
+                        f"损失: {metrics['loss']:.4f} | "
                         f"L1: {metrics['l1_loss']:.4f} | "
                         f"CRPS: {metrics['crps_loss']:.4f} | "
                         f"RMSE: {metrics['rmse']:.4f} | "
-                        f"Grad: {metrics['grad_norm']:.4f} | "
+                        f"梯度: {metrics['grad_norm']:.4f} | "
                         f"LR: {current_lr:.2e}"
                     )
                     progress.console.print(log_msg)
@@ -440,7 +440,7 @@ def train(cfg):
                         model, optimizer, scheduler,
                         epoch, global_step, cfg, ckpt_path,
                     )
-                    logger.info(f"Saved checkpoint: {ckpt_path}")
+                    logger.info(f"已保存检查点： {ckpt_path}")
 
         flush_remaining_grads(
             model, optimizer, cfg, batch_idx, grad_accum_steps,
@@ -454,7 +454,7 @@ def train(cfg):
                 model, optimizer, scheduler, epoch, global_step, cfg,
                 epoch_path,
             )
-            logger.info(f"Epoch {epoch + 1} finished. Saved checkpoint.")
+            logger.info(f"第 {epoch + 1} 轮完成，检查点已保存。")
 
         dist.barrier()
 
@@ -466,7 +466,7 @@ def train(cfg):
             model, optimizer, scheduler, epochs, global_step, cfg, final_path,
         )
         progress.console.print(
-            f"[bold green]Training Completed. Final checkpoint: {final_path}"
+            f"[bold green]训练中 Completed. Final checkpoint: {final_path}"
         )
         if cfg["logging"]["use_wandb"]:
             wandb.finish()
